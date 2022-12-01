@@ -6,6 +6,7 @@ using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using National4HSatrusLive.Models;
 using System;
+using System.Collections.Generic;
 using System.Web.Http;
 
 namespace National4HSatrusLive.Controllers
@@ -132,33 +133,81 @@ namespace National4HSatrusLive.Controllers
         {
             try
             {
-                Entity contactEntity = new Entity("contact");
-                EntityCollection emailEntity = RetrieveByEmailId(contactModel.Email);
-                EntityCollection lastNameEntity = RetrieveByLastName(contactModel.LastName);
-                EntityCollection firstNameEntity = RetrieveByFirstName(contactModel.FirstName);
-
-                if(emailEntity.Entities.Count > 0 || lastNameEntity.Entities.Count > 0 || firstNameEntity.Entities.Count > 0)
+                if (contactModel != null && !string.IsNullOrWhiteSpace(contactModel.FirstName))
                 {
-                    return new Guid();
+                    Entity contactEntity = new Entity("contact");
+
+                    var query = new QueryExpression("contact");
+                    query.ColumnSet = new ColumnSet(true);
+                    query.Criteria.AddCondition(new ConditionExpression("firstname", ConditionOperator.Equal, contactModel.FirstName));
+                    query.Criteria.AddCondition(new ConditionExpression("lastname", ConditionOperator.Equal, contactModel.LastName));
+                    query.Criteria.AddCondition(new ConditionExpression("emailaddress1", ConditionOperator.Equal, contactModel.Email));
+                    var queryResult = _service.RetrieveMultiple(query);
+
+                    if (queryResult != null && queryResult.Entities.Count > 0)
+                    {
+                        return new Guid();
+                    }
+
+                    var genderValue = GetOptionsSetValueByText(_service, "contact", "gendercode", contactModel.Gender);
+                    if (genderValue != -1)
+                        contactEntity.Attributes["gendercode"] = new OptionSetValue(genderValue);
+                    var prefix = GetOptionsSetValueByText(_service, "contact", "sl_honorific", contactModel.Prefix);
+                    if (prefix != -1)
+                        contactEntity.Attributes["sl_honorific"] = new OptionSetValue(prefix);
+
+
+                    if (!string.IsNullOrWhiteSpace(contactModel.FirstName))
+                        contactEntity.Attributes["firstname"] = contactModel.FirstName;
+                    if (!string.IsNullOrWhiteSpace(contactModel.LastName))
+                        contactEntity.Attributes["lastname"] = contactModel.LastName;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Email))
+                        contactEntity.Attributes["emailaddress1"] = contactModel.Email;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1Street1))
+                        contactEntity.Attributes["address1_line1"] = contactModel.Address1Street1;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1Street2))
+                        contactEntity.Attributes["address1_line1"] = contactModel.Address1Street2;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1Street3))
+                        contactEntity.Attributes["address1_line1"] = contactModel.Address1Street3;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1City1))
+                        contactEntity.Attributes["address1_city"] = contactModel.Address1City1;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1StateProvince))
+                        contactEntity.Attributes["address1_stateorprovince"] = contactModel.Address1StateProvince;
+                    if (!string.IsNullOrWhiteSpace(contactModel.Address1ZipPostalCode))
+                        contactEntity.Attributes["address1_postalcode"] = contactModel.Address1ZipPostalCode;
+                    if(contactModel.Birthday != null && DateTime.MinValue != contactModel.Birthday)
+                        contactEntity.Attributes["birthdate"] = contactModel.Birthday;
+                    contactEntity.Attributes["donotbulkemail"] = contactModel.SendBulkEmail;
+                    var contactId = _service.Create(contactEntity);
+
+                    if (contactModel.Interests != null && contactModel.Interests.Count > 0)
+                    {
+                        
+                        List<OptionSetValue> optionSetValues = new List<OptionSetValue>();
+                        foreach (var interest in contactModel.Interests)
+                        {
+                            var interestquery = new QueryExpression("sl_interestlist");
+                            interestquery.ColumnSet = new ColumnSet(true);
+                            interestquery.Criteria.AddCondition(new ConditionExpression("sl_name", ConditionOperator.Equal, interest));
+                            var interestList = _service.RetrieveMultiple(interestquery);
+                            if (interestList != null && interestList.Entities.Count > 0)
+                            {
+                                Entity interestEntity = new Entity("sl_interest");
+                                var interestlistId = interestList.Entities[0].Id;
+                                interestEntity["sl_interestlistid"] = new EntityReference("sl_interestlist", interestlistId);
+                                interestEntity["sl_contactid"] = new EntityReference("contact", contactId);
+                                _service.Create(interestEntity);
+                            }
+                        }
+
+                        if (optionSetValues.Count > 0)
+                            contactEntity.Attributes["sl_interest"] = optionSetValues;
+                    }
+
+                    return contactId;
                 }
 
-                var genderValue = GetOptionsSetValueByText(_service, "contact", "gendercode", contactModel.Gender);
-                contactEntity.Attributes["gendercode"] = new OptionSetValue(genderValue);
-                var prefix = GetOptionsSetValueByText(_service, "contact", "sl_honorific", contactModel.Prefix);
-                contactEntity.Attributes["sl_honorific"] = new OptionSetValue(prefix);
-
-                contactEntity.Attributes["firstname"] = contactModel.FirstName;
-                contactEntity.Attributes["lastname"] = contactModel.LastName;
-                contactEntity.Attributes["emailaddress1"] = contactModel.Email;
-                contactEntity.Attributes["address1_line1"] = contactModel.Address1Street1;
-                contactEntity.Attributes["address1_line1"] = contactModel.Address1Street2;
-                contactEntity.Attributes["address1_line1"] = contactModel.Address1Street3;
-                contactEntity.Attributes["address1_city"] = contactModel.Address1City1;
-                contactEntity.Attributes["address1_stateorprovince"] = contactModel.Address1StateProvince;
-                contactEntity.Attributes["address1_postalcode"] = contactModel.Address1ZipPostalCode;
-                contactEntity.Attributes["donotbulkemail"] = contactModel.SendBulkEmail;
-                var contactId = _service.Create(contactEntity);
-                return contactId;
+                return new Guid();
             }
             catch (Exception ex)
             {

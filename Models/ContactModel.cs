@@ -24,5 +24,6 @@ namespace National4HSatrusLive.Models
         public string EntityName { get; set; }
         public int StateValue { get; set; }
         public int StatusValue { get; set; }
+        public List<string> Interests { get; set; }
     }
 }
