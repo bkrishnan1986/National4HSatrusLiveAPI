@@ -1,6 +1,6 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using log4net;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
-using Microsoft.Xrm.Sdk.PluginTelemetry;
 using Microsoft.Xrm.Sdk.Query;
 using National4HSatrusLive.Models;
 using System;
@@ -15,7 +15,7 @@ namespace National4HSatrusLive.Services
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger _logger;
+        private ILog Logger = LogManager.GetLogger(typeof(ContactService));
 
         public InterestService()
         {
@@ -61,7 +61,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"InterestService:AddContact:- {ex}");
+                Logger.Error(ex);
                 return new Guid();
             }
         }

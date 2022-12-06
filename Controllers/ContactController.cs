@@ -20,14 +20,9 @@ namespace National4HSatrusLive.Controllers
         /// </summary>
         private readonly ContactService _contactService;
 
-        /// <summary>
-        /// The logger
-        /// </summary>
-        private readonly ILogger _logger;
-
         public ContactController()
         {
-            _contactService = new ContactService(_logger);
+            _contactService = new ContactService();
         }
 
         #region Retrieve Contact
@@ -47,7 +42,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveContact:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -68,7 +62,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveContactById:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -89,7 +82,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveByFirstName:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -110,7 +102,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveByLastName:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -131,7 +122,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveByEmailId:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -152,7 +142,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:RetrieveByContactNumber:- {ex}");
                 return new EntityCollection();
             }
         }
@@ -183,7 +172,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:AddContact:- {ex}");
                 return new Guid();
             }
         }
@@ -205,7 +193,6 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:ActivateDeactivateContact:- {ex}");
             }
         }
 
@@ -227,7 +214,7 @@ namespace National4HSatrusLive.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactController:DeleteContact:- {ex}");
+
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.Crm.Sdk.Messages;
+﻿using log4net;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Messages;
@@ -18,12 +19,11 @@ namespace National4HSatrusLive.Services
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger _logger;
+        private ILog Logger = LogManager.GetLogger(typeof(ContactService));
 
-        public ContactService(ILogger logger)
+        public ContactService()
         {
             _service = OrganizationService.GetCrmService();
-            _logger = logger;
         }
 
         #region Retrieve
@@ -47,7 +47,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveContact:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -69,7 +69,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveContactById:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -91,7 +91,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveByFirstName:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -114,7 +114,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveByLastName:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -137,7 +137,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveByEmailId:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -160,7 +160,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:RetrieveByContactNumber:- {ex}");
+                Logger.Error(ex);
                 return new EntityCollection();
             }
         }
@@ -231,7 +231,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:AddContact:- {ex}");
+                Logger.Error(ex);
                 return new Guid();
             }
         }
@@ -257,7 +257,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:UpdateStatus:- {ex}");
+                Logger.Error(ex);
             }
         }
 
@@ -303,7 +303,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:ActivateDeactivateContact:- {ex}");
+                Logger.Error(ex);
             }
         }
 
@@ -323,7 +323,7 @@ namespace National4HSatrusLive.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError($"ContactService:DeleteContact:- {ex}");
+                Logger.Error(ex);
             }
         }
 
@@ -341,29 +341,37 @@ namespace National4HSatrusLive.Services
         /// <returns></returns>
         private int GetOptionsSetValueByText(OrganizationServiceProxy xrmService, string entityName, string attributeName, string optionSetTextValue)
         {
-            RetrieveAttributeRequest retrieveAttributeRequest = new RetrieveAttributeRequest
+            try
             {
-                EntityLogicalName = entityName,
-                LogicalName = attributeName,
-                RetrieveAsIfPublished = true
-            };
-            RetrieveAttributeResponse retrieveAttributeResponse = (RetrieveAttributeResponse)xrmService.Execute(retrieveAttributeRequest);
-            if (retrieveAttributeResponse != null)
-            {
-                PicklistAttributeMetadata optionsetAttributeMetadata = retrieveAttributeResponse.AttributeMetadata as PicklistAttributeMetadata;
-                if (optionsetAttributeMetadata != null)
+                RetrieveAttributeRequest retrieveAttributeRequest = new RetrieveAttributeRequest
                 {
-                    OptionMetadata[] optionsetList = optionsetAttributeMetadata.OptionSet.Options.ToArray();
-                    foreach (OptionMetadata optionsetMetaData in optionsetList)
+                    EntityLogicalName = entityName,
+                    LogicalName = attributeName,
+                    RetrieveAsIfPublished = true
+                };
+                RetrieveAttributeResponse retrieveAttributeResponse = (RetrieveAttributeResponse)xrmService.Execute(retrieveAttributeRequest);
+                if (retrieveAttributeResponse != null)
+                {
+                    PicklistAttributeMetadata optionsetAttributeMetadata = retrieveAttributeResponse.AttributeMetadata as PicklistAttributeMetadata;
+                    if (optionsetAttributeMetadata != null)
                     {
-                        if (optionsetMetaData.Label.UserLocalizedLabel.Label == optionSetTextValue)
+                        OptionMetadata[] optionsetList = optionsetAttributeMetadata.OptionSet.Options.ToArray();
+                        foreach (OptionMetadata optionsetMetaData in optionsetList)
                         {
-                            return optionsetMetaData.Value.Value;
+                            if (optionsetMetaData.Label.UserLocalizedLabel.Label == optionSetTextValue)
+                            {
+                                return optionsetMetaData.Value.Value;
+                            }
                         }
                     }
                 }
+                return -1;
             }
-            return -1;
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return -1;
+            }
         }
 
         #endregion
