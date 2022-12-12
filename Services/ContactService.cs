@@ -16,6 +16,8 @@ namespace National4HSatrusLive.Services
     {
         private OrganizationServiceProxy _service;
 
+        ParticipationService _participationService;
+
         /// <summary>
         /// The logger
         /// </summary>
@@ -24,6 +26,7 @@ namespace National4HSatrusLive.Services
         public ContactService()
         {
             _service = OrganizationService.GetCrmService();
+            _participationService = new ParticipationService();
         }
 
         #region Retrieve
@@ -184,13 +187,12 @@ namespace National4HSatrusLive.Services
 
                     var query = new QueryExpression("contact");
                     query.ColumnSet = new ColumnSet(true);
-                    query.Criteria.AddCondition(new ConditionExpression("firstname", ConditionOperator.Equal, contactModel.FirstName));
-                    query.Criteria.AddCondition(new ConditionExpression("lastname", ConditionOperator.Equal, contactModel.LastName));
                     query.Criteria.AddCondition(new ConditionExpression("emailaddress1", ConditionOperator.Equal, contactModel.Email));
                     var queryResult = _service.RetrieveMultiple(query);
 
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
+                        _participationService.AddParticipation(queryResult.Entities[0].Id);
                         return new Guid();
                     }
 
@@ -200,6 +202,10 @@ namespace National4HSatrusLive.Services
                     var prefix = GetOptionsSetValueByText(_service, "contact", "sl_honorific", contactModel.Prefix);
                     if (prefix != -1)
                         contactEntity.Attributes["sl_honorific"] = new OptionSetValue(prefix);
+
+                    var sourceValue = GetOptionsSetValueByText(_service, "contact", "n4h_source", "Bizzabo");
+                    if (sourceValue != -1)
+                        contactEntity.Attributes["n4h_source"] = new OptionSetValue(sourceValue);
 
                     if (!string.IsNullOrWhiteSpace(contactModel.FirstName))
                         contactEntity.Attributes["firstname"] = contactModel.FirstName;
@@ -221,8 +227,10 @@ namespace National4HSatrusLive.Services
                         contactEntity.Attributes["address1_postalcode"] = contactModel.Address1ZipPostalCode;
                     if (contactModel.Birthday != null && DateTime.MinValue != contactModel.Birthday)
                         contactEntity.Attributes["birthdate"] = contactModel.Birthday;
-                    contactEntity.Attributes["donotbulkemail"] = contactModel.SendBulkEmail;
+                    contactEntity.Attributes["marketingonly"] = contactModel.SendBulkEmail;
                     var contactId = _service.Create(contactEntity);
+
+                    _participationService.AddParticipation(contactId);
 
                     return contactId;
                 }
