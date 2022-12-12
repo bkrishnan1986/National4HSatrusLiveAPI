@@ -227,7 +227,7 @@ namespace National4HSatrusLive.Services
                         contactEntity.Attributes["address1_postalcode"] = contactModel.Address1ZipPostalCode;
                     if (contactModel.Birthday != null && DateTime.MinValue != contactModel.Birthday)
                         contactEntity.Attributes["birthdate"] = contactModel.Birthday;
-                    contactEntity.Attributes["marketingonly"] = contactModel.SendBulkEmail;
+                    contactEntity.Attributes["donotbulkemail"] = !contactModel.SendBulkEmail;
                     var contactId = _service.Create(contactEntity);
 
                     _participationService.AddParticipation(contactId);
