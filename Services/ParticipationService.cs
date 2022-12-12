@@ -33,13 +33,13 @@ namespace National4HSatrusLive.Services
                 var participationType = _service.RetrieveMultiple(participationquery);
                 if (participationType != null && participationType.Entities.Count > 0)
                 {
-                    Entity interestEntity = new Entity("sl_participation");
+                    Entity participationEntity = new Entity("sl_participation");
                     var participationTypeId = participationType.Entities[0].Id;
                     if (!isParticipationExists(contactId, participationTypeId))
                     {
-                        interestEntity["sl_participationtypeid"] = new EntityReference("sl_participationtype", participationTypeId);
-                        interestEntity["sl_contactid"] = new EntityReference("contact", contactId);
-                        _service.Create(interestEntity);
+                        participationEntity["sl_participationtypeid"] = new EntityReference("sl_participationtype", participationTypeId);
+                        participationEntity["sl_contactid"] = new EntityReference("contact", contactId);
+                        _service.Create(participationEntity);
                     }
                 }
 

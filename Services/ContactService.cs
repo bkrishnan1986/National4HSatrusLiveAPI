@@ -8,6 +8,7 @@ using Microsoft.Xrm.Sdk.PluginTelemetry;
 using Microsoft.Xrm.Sdk.Query;
 using National4HSatrusLive.Models;
 using System;
+using System.Linq;
 using System.Net;
 
 namespace National4HSatrusLive.Services
@@ -18,6 +19,9 @@ namespace National4HSatrusLive.Services
 
         ParticipationService _participationService;
 
+
+        InterestService _InterestService;
+
         /// <summary>
         /// The logger
         /// </summary>
@@ -27,6 +31,7 @@ namespace National4HSatrusLive.Services
         {
             _service = OrganizationService.GetCrmService();
             _participationService = new ParticipationService();
+            _InterestService = new InterestService();
         }
 
         #region Retrieve
@@ -187,12 +192,20 @@ namespace National4HSatrusLive.Services
 
                     var query = new QueryExpression("contact");
                     query.ColumnSet = new ColumnSet(true);
-                    query.Criteria.AddCondition(new ConditionExpression("emailaddress1", ConditionOperator.Equal, contactModel.Email));
+                    FilterExpression incidentChildFilterOR = query.Criteria.AddFilter(LogicalOperator.Or);
+                    FilterExpression incidentChildFilterAND = query.Criteria.AddFilter(LogicalOperator.And);
+                    incidentChildFilterOR.AddCondition(new ConditionExpression("emailaddress1", ConditionOperator.Equal, contactModel.Email));
+                    incidentChildFilterOR.AddCondition(new ConditionExpression("emailaddress2", ConditionOperator.Equal, contactModel.Email));
+                    incidentChildFilterOR.AddCondition(new ConditionExpression("emailaddress3", ConditionOperator.Equal, contactModel.Email));
+                    incidentChildFilterAND.AddCondition(new ConditionExpression("statuscode", ConditionOperator.Equal, 1));
+
+
                     var queryResult = _service.RetrieveMultiple(query);
 
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
                         _participationService.AddParticipation(queryResult.Entities[0].Id);
+                        _InterestService.AddInterest(contactModel, queryResult.Entities[0].Id);
                         return new Guid();
                     }
 
@@ -201,7 +214,18 @@ namespace National4HSatrusLive.Services
                         contactEntity.Attributes["gendercode"] = new OptionSetValue(genderValue);
                     var prefix = GetOptionsSetValueByText(_service, "contact", "sl_honorific", contactModel.Prefix);
                     if (prefix != -1)
+                    {
                         contactEntity.Attributes["sl_honorific"] = new OptionSetValue(prefix);
+                    }
+                    else
+                    {
+                        prefix = GetOptionsSetValueByText(_service, "contact", "sl_honorific", contactModel.Prefix.TrimEnd(new char[] {'.'}));
+                        if (prefix != -1)
+                        {
+                            contactEntity.Attributes["sl_honorific"] = new OptionSetValue(prefix);
+                        }
+
+                    }
 
                     var sourceValue = GetOptionsSetValueByText(_service, "contact", "n4h_source", "Bizzabo");
                     if (sourceValue != -1)
@@ -216,9 +240,9 @@ namespace National4HSatrusLive.Services
                     if (!string.IsNullOrWhiteSpace(contactModel.Address1Street1))
                         contactEntity.Attributes["address1_line1"] = contactModel.Address1Street1;
                     if (!string.IsNullOrWhiteSpace(contactModel.Address1Street2))
-                        contactEntity.Attributes["address1_line1"] = contactModel.Address1Street2;
+                        contactEntity.Attributes["address1_line2"] = contactModel.Address1Street2;
                     if (!string.IsNullOrWhiteSpace(contactModel.Address1Street3))
-                        contactEntity.Attributes["address1_line1"] = contactModel.Address1Street3;
+                        contactEntity.Attributes["address1_line3"] = contactModel.Address1Street3;
                     if (!string.IsNullOrWhiteSpace(contactModel.Address1City1))
                         contactEntity.Attributes["address1_city"] = contactModel.Address1City1;
                     if (!string.IsNullOrWhiteSpace(contactModel.Address1StateProvince))

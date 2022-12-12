@@ -44,14 +44,15 @@ namespace National4HSatrusLive.Services
                             {
                                 Entity interestEntity = new Entity("sl_interest");
                                 var interestlistId = interestList.Entities[0].Id;
-                                interestEntity["sl_interestlistid"] = new EntityReference("sl_interestlist", interestlistId);
-                                interestEntity["sl_contactid"] = new EntityReference("contact", contactId);
-                                _service.Create(interestEntity);
+                                if (!isInterestExists(contactId, interestlistId))
+                                {
+                                    interestEntity["sl_interestlistid"] = new EntityReference("sl_interestlist", interestlistId);
+                                    interestEntity["sl_contactid"] = new EntityReference("contact", contactId);
+                                    _service.Create(interestEntity);
+                                }
                             }
                         }
 
-                        if (optionSetValues.Count > 0)
-                            contactEntity.Attributes["sl_interest"] = optionSetValues;
                     }
 
                     return contactId;
@@ -63,6 +64,29 @@ namespace National4HSatrusLive.Services
             {
                 Logger.Error(ex);
                 return new Guid();
+            }
+        }
+
+        public bool isInterestExists(Guid contactId, Guid InterestListId)
+        {
+            try
+            {
+                var query = new QueryExpression("sl_interest");
+                query.ColumnSet = new ColumnSet(true);
+                query.Criteria.AddCondition(new ConditionExpression("sl_interestlistid", ConditionOperator.Equal, InterestListId));
+                query.Criteria.AddCondition(new ConditionExpression("sl_contactid", ConditionOperator.Equal, contactId));
+
+                var interestLists = _service.RetrieveMultiple(query);
+                if (interestLists != null && interestLists.Entities.Count > 0)
+                {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                return false;
             }
         }
     }
