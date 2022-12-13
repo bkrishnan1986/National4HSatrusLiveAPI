@@ -57,7 +57,7 @@ namespace National4HSatrusLive.Services
 
                     return contactId;
                 }
-
+                Logger.Info("returned new Guid() since new contact is null or first name is empty - InterestService.AddInterest");
                 return new Guid();
             }
             catch (Exception ex)
