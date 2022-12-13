@@ -13,6 +13,7 @@ using System.Web.Http;
 
 namespace National4HSatrusLive.Controllers
 {
+    [Authorize]
     public class ContactController : ApiController
     {
         /// <summary>
