@@ -39,6 +39,7 @@ namespace National4HSatrusLive.Services
                     {
                         participationEntity["sl_participationtypeid"] = new EntityReference("sl_participationtype", participationTypeId);
                         participationEntity["sl_contactid"] = new EntityReference("contact", contactId);
+                        participationEntity["sl_begindate"] = DateTime.Now;
                         _service.Create(participationEntity);
                     }
                 }

@@ -206,6 +206,7 @@ namespace National4HSatrusLive.Services
                     {
                         _participationService.AddParticipation(queryResult.Entities[0].Id);
                         _InterestService.AddInterest(contactModel, queryResult.Entities[0].Id);
+                        Logger.Info("Returned new Guid() since contact already exist - ContactService.AddContact");
                         return new Guid();
                     }
 
@@ -254,11 +255,9 @@ namespace National4HSatrusLive.Services
                     contactEntity.Attributes["donotbulkemail"] = !contactModel.SendBulkEmail;
                     var contactId = _service.Create(contactEntity);
 
-                    _participationService.AddParticipation(contactId);
-
                     return contactId;
                 }
-
+                Logger.Info("returned new Guid() since new contact is null or first name is empty - ContactService.AddContact");
                 return new Guid();
             }
             catch (Exception ex)
@@ -305,6 +304,7 @@ namespace National4HSatrusLive.Services
                 var contactStatus = new ContactModel();
                 if (0 == contact.Entities.Count)
                 {
+                    Logger.Info("Returned as entities count equals to zero - ContactService.ActivateDeactivateContact");
                     return;
                 }
                 var stateCode = (OptionSetValue)contact.Entities[0].Attributes["statecode"];
@@ -397,6 +397,7 @@ namespace National4HSatrusLive.Services
                         }
                     }
                 }
+                Logger.Info("Returned as retrieveAttributeResponse is null - ContactService.GetOptionsSetValueByText");
                 return -1;
             }
             catch (Exception ex)
