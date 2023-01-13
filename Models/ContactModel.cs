@@ -25,5 +25,7 @@ namespace National4HSatrusLive.Models
         public int StateValue { get; set; }
         public int StatusValue { get; set; }
         public List<string> Interests { get; set; }
+        public List<string> Roles { get; set; }
+        public Guid EventId { get; set; }
     }
 }

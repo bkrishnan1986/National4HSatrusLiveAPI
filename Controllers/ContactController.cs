@@ -20,10 +20,16 @@ namespace National4HSatrusLive.Controllers
         /// The contact service
         /// </summary>
         private readonly ContactService _contactService;
+        
+        /// <summary>
+        /// The event service
+        /// </summary>
+        private readonly EventService _eventService;
 
         public ContactController()
         {
             _contactService = new ContactService();
+            _eventService = new EventService();
         }
 
         #region Retrieve Contact
@@ -167,6 +173,8 @@ namespace National4HSatrusLive.Controllers
                     var contactId = _contactService.AddContact(contactModel);
                     InterestService interestService = new InterestService();
                     contactId = interestService.AddInterest(contactModel, contactId);
+                    contactId = _eventService.AddEvent(contactModel, contactId);
+
                     return contactId;
                 }
                 return new Guid();
@@ -176,6 +184,7 @@ namespace National4HSatrusLive.Controllers
                 return new Guid();
             }
         }
+
         #endregion
 
         #region Update

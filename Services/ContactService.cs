@@ -21,6 +21,7 @@ namespace National4HSatrusLive.Services
 
 
         InterestService _InterestService;
+        EventService _eventService;
 
         /// <summary>
         /// The logger
@@ -32,6 +33,7 @@ namespace National4HSatrusLive.Services
             _service = OrganizationService.GetCrmService();
             _participationService = new ParticipationService();
             _InterestService = new InterestService();
+            _eventService = new EventService();
         }
 
         #region Retrieve
@@ -199,15 +201,15 @@ namespace National4HSatrusLive.Services
                     incidentChildFilterOR.AddCondition(new ConditionExpression("emailaddress3", ConditionOperator.Equal, contactModel.Email));
                     incidentChildFilterAND.AddCondition(new ConditionExpression("statuscode", ConditionOperator.Equal, 1));
 
-
                     var queryResult = _service.RetrieveMultiple(query);
 
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
-                        _participationService.AddParticipation(queryResult.Entities[0].Id);
-                        _InterestService.AddInterest(contactModel, queryResult.Entities[0].Id);
+                        Guid existingContactId = queryResult.Entities[0].Id;
+                        _participationService.AddParticipation(existingContactId);
+                        _InterestService.AddInterest(contactModel, existingContactId);
                         Logger.Info("Returned new Guid() since contact already exist - ContactService.AddContact");
-                        return new Guid();
+                        return existingContactId;
                     }
 
                     var genderValue = GetOptionsSetValueByText(_service, "contact", "gendercode", contactModel.Gender);
