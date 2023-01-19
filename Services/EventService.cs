@@ -22,14 +22,13 @@ namespace National4HSatrusLive.Services
             _service = OrganizationService.GetCrmService();
         }
 
-        public Guid CreateEvent(EventModel eventModel)
+        public Guid AddEvent(EventModel eventModel)
         {
             try
             {
                 if (eventModel != null && !string.IsNullOrWhiteSpace(eventModel.Name))
                 {
                     Entity eventEntity = new Entity("sl_event");
-
                     var query = new QueryExpression("sl_event");
                     query.ColumnSet = new ColumnSet(true);
                     FilterExpression incidentChildFilterOR = query.Criteria.AddFilter(LogicalOperator.Or);
@@ -42,7 +41,6 @@ namespace National4HSatrusLive.Services
 
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
-                        // Todo - what happen if the event is already exist
                         return new Guid();
                     }
 
@@ -60,6 +58,12 @@ namespace National4HSatrusLive.Services
                     {
                         eventEntity.Attributes["sl_enddate"] = endDate;
                     }
+                    if (!string.IsNullOrWhiteSpace(eventModel.Description))
+                        eventEntity.Attributes["sl_description"] = eventModel.Description;
+
+                    Guid eventVenueId = CreateEventVenue(eventModel);
+                    if (new Guid() != eventVenueId && null != eventVenueId)
+                        eventEntity["sl_eventvenueid"] = new EntityReference("sl_eventvenue", eventVenueId);
 
                     var eventId = _service.Create(eventEntity);
                     return eventId;
@@ -74,11 +78,14 @@ namespace National4HSatrusLive.Services
             }
         }
 
-        public Guid AddEvent(ContactModel contactModel, Guid contactId)
+        public Guid AddEventDetails(ContactModel contactModel, Guid contactId)
         {
             try
             {
-                if (contactModel != null && !string.IsNullOrWhiteSpace(contactModel.FirstName))
+                Guid emptyGuid = new Guid();
+                var eventId = contactModel.EventId;
+                if (contactModel != null && !string.IsNullOrWhiteSpace(contactModel.FirstName) && 
+                    null != eventId && emptyGuid != eventId)
                 {
                     if (contactModel.Roles != null && contactModel.Roles.Count > 0)
                     {
@@ -88,7 +95,6 @@ namespace National4HSatrusLive.Services
                             if ("Attendee" == role)
                             {
                                 Entity attendeeEntity = new Entity("sl_eventattendee");
-                                var eventId = contactModel.EventId;
                                 if (!isAttendeeExists(contactId, eventId))
                                 {
                                     attendeeEntity["sl_eventid"] = new EntityReference("sl_eventattendee", eventId);
@@ -104,7 +110,7 @@ namespace National4HSatrusLive.Services
                             if ("Sponsor" == role)
                             {
                                 Entity eventEntity = new Entity("sl_eventsponsor");
-                                var eventId = contactModel.EventId;
+                                
                                 if (!isSponserExists(contactId, eventId))
                                 {
                                     eventEntity["sl_eventid"] = new EntityReference("sl_eventsponsor", eventId);
@@ -120,7 +126,6 @@ namespace National4HSatrusLive.Services
                             if ("Speaker" == role)
                             {
                                 Entity eventEntity = new Entity("sl_eventspeaker");
-                                var eventId = contactModel.EventId;
                                 if (!isSpeakerExists(contactId, eventId))
                                 {
                                     eventEntity["sl_eventid"] = new EntityReference("sl_eventspeaker", eventId);
@@ -211,5 +216,114 @@ namespace National4HSatrusLive.Services
                 return false;
             }
         }
+
+        public Guid CreateEventVenue(EventModel eventModel)
+        {
+            if (null != eventModel.Venue)
+            {
+                var venuequery = new QueryExpression("sl_eventvenue");
+                venuequery.ColumnSet = new ColumnSet(true);
+                FilterExpression venueChildFilterAND = venuequery.Criteria.AddFilter(LogicalOperator.And);
+
+                string venueName = string.Empty;
+                string city = string.Empty;
+                string country = string.Empty;
+                string state = string.Empty;
+                string address = string.Empty;
+                string displayAddress = string.Empty;
+
+                foreach (KeyValuePair<string, string> kvp in eventModel.Venue)
+                {
+                    if (kvp.Value != null && "name" == kvp.Key)
+                    {
+                        venueName = kvp.Value;
+                    }
+                    if (kvp.Value != null && "city" == kvp.Key)
+                    {
+                        city = kvp.Value;
+                    }
+                    if (kvp.Value != null && "country" == kvp.Key)
+                    {
+                        country = kvp.Value;
+                    }
+                    if (kvp.Value != null && "state" == kvp.Key)
+                    {
+                        state = kvp.Value;
+                    }
+                    if (kvp.Value != null && "address1" == kvp.Key)
+                    {
+                        address = kvp.Value;
+                    }
+                    if (kvp.Value != null && "displayAddress" == kvp.Key)
+                    {
+                        displayAddress = kvp.Value;
+                    }
+                }
+
+                venueChildFilterAND.AddCondition(new ConditionExpression("sl_name", ConditionOperator.Equal, venueName));
+                venueChildFilterAND.AddCondition(new ConditionExpression("sl_city", ConditionOperator.Equal, city));
+                venueChildFilterAND.AddCondition(new ConditionExpression("sl_country", ConditionOperator.Equal, country));
+                venueChildFilterAND.AddCondition(new ConditionExpression("sl_stateprovince", ConditionOperator.Equal, state));
+                venueChildFilterAND.AddCondition(new ConditionExpression("sl_addressline1", ConditionOperator.Equal, address));
+                var venueList = _service.RetrieveMultiple(venuequery);
+
+                if (venueList != null && venueList.Entities.Count == 0)
+                {
+                    Entity venueEntity = new Entity("sl_eventvenue");
+                    if (!string.IsNullOrWhiteSpace(venueName))
+                        venueEntity.Attributes["sl_name"] = venueName;
+                    if (!string.IsNullOrWhiteSpace(state))
+                        venueEntity.Attributes["sl_stateprovince"] = state;
+                    if (!string.IsNullOrWhiteSpace(country))
+                        venueEntity.Attributes["sl_country"] = country;
+                    if (!string.IsNullOrWhiteSpace(city))
+                        venueEntity.Attributes["sl_city"] = city;
+                    if (!string.IsNullOrWhiteSpace(address))
+                        venueEntity.Attributes["sl_addressline1"] = address;
+                    if (!string.IsNullOrWhiteSpace(eventModel.SupportEmail))
+                        venueEntity.Attributes["sl_email"] = eventModel.SupportEmail;
+
+                    if (!string.IsNullOrWhiteSpace(displayAddress))
+                    {
+                        string[] displayAddressList = displayAddress.Split(',');
+                        string postalCode = displayAddressList[2].Split(' ')[2];
+                        venueEntity.Attributes["sl_postalcode"] = postalCode;
+                    }
+
+                    // Todo
+                    //var venueAccountId = CreateAccount(venueName);
+                    //if (new Guid() != venueAccountId && null != venueAccountId)
+                    //    //venueEntity.Attributes["sl_venuenameid"] = venueAccountId;
+                    //venueEntity["sl_venuenameid"] = new EntityReference("account", venueAccountId);
+
+                    var venueId = _service.Create(venueEntity);
+                    return venueId;
+
+                }
+            }
+            return new Guid();
+        }
+        // Todo
+        //public Guid CreateAccount(string accountName)
+        //{
+        //    if (!string.IsNullOrWhiteSpace(accountName))
+        //    {
+        //        var interestquery = new QueryExpression("account");
+        //        interestquery.ColumnSet = new ColumnSet(true);
+        //        interestquery.Criteria.AddCondition(new ConditionExpression("name", ConditionOperator.Equal, accountName));
+        //        var interestList = _service.RetrieveMultiple(interestquery);
+        //        if (interestList != null && interestList.Entities.Count == 0)
+        //        {
+        //            Entity accountEntity = new Entity("account");
+        //            if (!string.IsNullOrWhiteSpace(accountName))
+        //                accountEntity.Attributes["name"] = accountName;
+        //            var venueId = _service.Create(accountEntity);
+        //            return venueId;
+        //        }
+        //        return new Guid();
+        //    }
+        //    Logger.Info("returned new Guid() since new contact is null or first name is empty - InterestService.AddInterest");
+        //    return new Guid();
+        //}
     }
 }

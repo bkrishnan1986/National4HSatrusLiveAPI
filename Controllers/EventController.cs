@@ -40,13 +40,13 @@ namespace National4HSatrusLive.Controllers
         /// <param name="eventModel"></param>
         /// <returns></returns>
         [HttpPost]
-        public Guid CreateEvent([FromBody] EventModel eventModel)
+        public Guid AddEvent([FromBody] EventModel eventModel)
         {
             try
             {
                 if (eventModel != null && !string.IsNullOrWhiteSpace(eventModel.Name))
                 {
-                    var eventId = _eventService.CreateEvent(eventModel);
+                    var eventId = _eventService.AddEvent(eventModel);
                     return eventId;
                 }
                 return new Guid();

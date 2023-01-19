@@ -17,12 +17,6 @@ namespace National4HSatrusLive.Services
     {
         private OrganizationServiceProxy _service;
 
-        ParticipationService _participationService;
-
-
-        InterestService _InterestService;
-        EventService _eventService;
-
         /// <summary>
         /// The logger
         /// </summary>
@@ -31,9 +25,6 @@ namespace National4HSatrusLive.Services
         public ContactService()
         {
             _service = OrganizationService.GetCrmService();
-            _participationService = new ParticipationService();
-            _InterestService = new InterestService();
-            _eventService = new EventService();
         }
 
         #region Retrieve
@@ -202,13 +193,9 @@ namespace National4HSatrusLive.Services
                     incidentChildFilterAND.AddCondition(new ConditionExpression("statuscode", ConditionOperator.Equal, 1));
 
                     var queryResult = _service.RetrieveMultiple(query);
-
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
                         Guid existingContactId = queryResult.Entities[0].Id;
-                        _participationService.AddParticipation(existingContactId);
-                        _InterestService.AddInterest(contactModel, existingContactId);
-                        Logger.Info("Returned new Guid() since contact already exist - ContactService.AddContact");
                         return existingContactId;
                     }
 
@@ -229,11 +216,10 @@ namespace National4HSatrusLive.Services
                         }
 
                     }
-
                     var sourceValue = GetOptionsSetValueByText(_service, "contact", "n4h_source", "Bizzabo");
+
                     if (sourceValue != -1)
                         contactEntity.Attributes["n4h_source"] = new OptionSetValue(sourceValue);
-
                     if (!string.IsNullOrWhiteSpace(contactModel.FirstName))
                         contactEntity.Attributes["firstname"] = contactModel.FirstName;
                     if (!string.IsNullOrWhiteSpace(contactModel.LastName))
