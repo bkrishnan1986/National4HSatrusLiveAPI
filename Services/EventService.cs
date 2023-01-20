@@ -61,9 +61,9 @@ namespace National4HSatrusLive.Services
                     if (!string.IsNullOrWhiteSpace(eventModel.Description))
                         eventEntity.Attributes["sl_description"] = eventModel.Description;
 
-                    Guid eventVenueId = CreateEventVenue(eventModel);
-                    if (new Guid() != eventVenueId && null != eventVenueId)
-                        eventEntity["sl_eventvenueid"] = new EntityReference("sl_eventvenue", eventVenueId);
+                    //Guid eventVenueId = CreateEventVenue(eventModel);
+                    //if (new Guid() != eventVenueId && null != eventVenueId)
+                    //    eventEntity["sl_eventvenueid"] = new EntityReference("sl_eventvenue", eventVenueId);
 
                     var eventId = _service.Create(eventEntity);
                     return eventId;
@@ -217,92 +217,92 @@ namespace National4HSatrusLive.Services
             }
         }
 
-        public Guid CreateEventVenue(EventModel eventModel)
-        {
-            if (null != eventModel.Venue)
-            {
-                var venuequery = new QueryExpression("sl_eventvenue");
-                venuequery.ColumnSet = new ColumnSet(true);
-                FilterExpression venueChildFilterAND = venuequery.Criteria.AddFilter(LogicalOperator.And);
+        //public Guid CreateEventVenue(EventModel eventModel)
+        //{
+        //    if (null != eventModel.Venue)
+        //    {
+        //        var venuequery = new QueryExpression("sl_eventvenue");
+        //        venuequery.ColumnSet = new ColumnSet(true);
+        //        FilterExpression venueChildFilterAND = venuequery.Criteria.AddFilter(LogicalOperator.And);
 
-                string venueName = string.Empty;
-                string city = string.Empty;
-                string country = string.Empty;
-                string state = string.Empty;
-                string address = string.Empty;
-                string displayAddress = string.Empty;
+        //        string venueName = string.Empty;
+        //        string city = string.Empty;
+        //        string country = string.Empty;
+        //        string state = string.Empty;
+        //        string address = string.Empty;
+        //        string displayAddress = string.Empty;
 
-                foreach (KeyValuePair<string, string> kvp in eventModel.Venue)
-                {
-                    if (kvp.Value != null && "name" == kvp.Key)
-                    {
-                        venueName = kvp.Value;
-                    }
-                    if (kvp.Value != null && "city" == kvp.Key)
-                    {
-                        city = kvp.Value;
-                    }
-                    if (kvp.Value != null && "country" == kvp.Key)
-                    {
-                        country = kvp.Value;
-                    }
-                    if (kvp.Value != null && "state" == kvp.Key)
-                    {
-                        state = kvp.Value;
-                    }
-                    if (kvp.Value != null && "address1" == kvp.Key)
-                    {
-                        address = kvp.Value;
-                    }
-                    if (kvp.Value != null && "displayAddress" == kvp.Key)
-                    {
-                        displayAddress = kvp.Value;
-                    }
-                }
+        //        foreach (KeyValuePair<string, string> kvp in eventModel.Venue)
+        //        {
+        //            if (kvp.Value != null && "name" == kvp.Key)
+        //            {
+        //                venueName = kvp.Value;
+        //            }
+        //            if (kvp.Value != null && "city" == kvp.Key)
+        //            {
+        //                city = kvp.Value;
+        //            }
+        //            if (kvp.Value != null && "country" == kvp.Key)
+        //            {
+        //                country = kvp.Value;
+        //            }
+        //            if (kvp.Value != null && "state" == kvp.Key)
+        //            {
+        //                state = kvp.Value;
+        //            }
+        //            if (kvp.Value != null && "address1" == kvp.Key)
+        //            {
+        //                address = kvp.Value;
+        //            }
+        //            if (kvp.Value != null && "displayAddress" == kvp.Key)
+        //            {
+        //                displayAddress = kvp.Value;
+        //            }
+        //        }
 
-                venueChildFilterAND.AddCondition(new ConditionExpression("sl_name", ConditionOperator.Equal, venueName));
-                venueChildFilterAND.AddCondition(new ConditionExpression("sl_city", ConditionOperator.Equal, city));
-                venueChildFilterAND.AddCondition(new ConditionExpression("sl_country", ConditionOperator.Equal, country));
-                venueChildFilterAND.AddCondition(new ConditionExpression("sl_stateprovince", ConditionOperator.Equal, state));
-                venueChildFilterAND.AddCondition(new ConditionExpression("sl_addressline1", ConditionOperator.Equal, address));
-                var venueList = _service.RetrieveMultiple(venuequery);
+        //        venueChildFilterAND.AddCondition(new ConditionExpression("sl_name", ConditionOperator.Equal, venueName));
+        //        venueChildFilterAND.AddCondition(new ConditionExpression("sl_city", ConditionOperator.Equal, city));
+        //        venueChildFilterAND.AddCondition(new ConditionExpression("sl_country", ConditionOperator.Equal, country));
+        //        venueChildFilterAND.AddCondition(new ConditionExpression("sl_stateprovince", ConditionOperator.Equal, state));
+        //        venueChildFilterAND.AddCondition(new ConditionExpression("sl_addressline1", ConditionOperator.Equal, address));
+        //        var venueList = _service.RetrieveMultiple(venuequery);
 
-                if (venueList != null && venueList.Entities.Count == 0)
-                {
-                    Entity venueEntity = new Entity("sl_eventvenue");
-                    if (!string.IsNullOrWhiteSpace(venueName))
-                        venueEntity.Attributes["sl_name"] = venueName;
-                    if (!string.IsNullOrWhiteSpace(state))
-                        venueEntity.Attributes["sl_stateprovince"] = state;
-                    if (!string.IsNullOrWhiteSpace(country))
-                        venueEntity.Attributes["sl_country"] = country;
-                    if (!string.IsNullOrWhiteSpace(city))
-                        venueEntity.Attributes["sl_city"] = city;
-                    if (!string.IsNullOrWhiteSpace(address))
-                        venueEntity.Attributes["sl_addressline1"] = address;
-                    if (!string.IsNullOrWhiteSpace(eventModel.SupportEmail))
-                        venueEntity.Attributes["sl_email"] = eventModel.SupportEmail;
+        //        if (venueList != null && venueList.Entities.Count == 0)
+        //        {
+        //            Entity venueEntity = new Entity("sl_eventvenue");
+        //            if (!string.IsNullOrWhiteSpace(venueName))
+        //                venueEntity.Attributes["sl_name"] = venueName;
+        //            if (!string.IsNullOrWhiteSpace(state))
+        //                venueEntity.Attributes["sl_stateprovince"] = state;
+        //            if (!string.IsNullOrWhiteSpace(country))
+        //                venueEntity.Attributes["sl_country"] = country;
+        //            if (!string.IsNullOrWhiteSpace(city))
+        //                venueEntity.Attributes["sl_city"] = city;
+        //            if (!string.IsNullOrWhiteSpace(address))
+        //                venueEntity.Attributes["sl_addressline1"] = address;
+        //            if (!string.IsNullOrWhiteSpace(eventModel.SupportEmail))
+        //                venueEntity.Attributes["sl_email"] = eventModel.SupportEmail;
 
-                    if (!string.IsNullOrWhiteSpace(displayAddress))
-                    {
-                        string[] displayAddressList = displayAddress.Split(',');
-                        string postalCode = displayAddressList[2].Split(' ')[2];
-                        venueEntity.Attributes["sl_postalcode"] = postalCode;
-                    }
+        //            if (!string.IsNullOrWhiteSpace(displayAddress))
+        //            {
+        //                string[] displayAddressList = displayAddress.Split(',');
+        //                string postalCode = displayAddressList[2].Split(' ')[2];
+        //                venueEntity.Attributes["sl_postalcode"] = postalCode;
+        //            }
 
-                    // Todo
-                    //var venueAccountId = CreateAccount(venueName);
-                    //if (new Guid() != venueAccountId && null != venueAccountId)
-                    //    //venueEntity.Attributes["sl_venuenameid"] = venueAccountId;
-                    //venueEntity["sl_venuenameid"] = new EntityReference("account", venueAccountId);
+        //            // Todo
+        //            //var venueAccountId = CreateAccount(venueName);
+        //            //if (new Guid() != venueAccountId && null != venueAccountId)
+        //            //    //venueEntity.Attributes["sl_venuenameid"] = venueAccountId;
+        //            //venueEntity["sl_venuenameid"] = new EntityReference("account", venueAccountId);
 
-                    var venueId = _service.Create(venueEntity);
-                    return venueId;
+        //            var venueId = _service.Create(venueEntity);
+        //            return venueId;
 
-                }
-            }
-            return new Guid();
-        }
+        //        }
+        //    }
+        //    return new Guid();
+        //}
         // Todo
         //public Guid CreateAccount(string accountName)
         //{
