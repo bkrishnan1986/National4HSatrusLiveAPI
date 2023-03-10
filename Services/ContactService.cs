@@ -17,11 +17,6 @@ namespace National4HSatrusLive.Services
     {
         private OrganizationServiceProxy _service;
 
-        ParticipationService _participationService;
-
-
-        InterestService _InterestService;
-
         /// <summary>
         /// The logger
         /// </summary>
@@ -30,8 +25,6 @@ namespace National4HSatrusLive.Services
         public ContactService()
         {
             _service = OrganizationService.GetCrmService();
-            _participationService = new ParticipationService();
-            _InterestService = new InterestService();
         }
 
         #region Retrieve
@@ -199,15 +192,11 @@ namespace National4HSatrusLive.Services
                     incidentChildFilterOR.AddCondition(new ConditionExpression("emailaddress3", ConditionOperator.Equal, contactModel.Email));
                     incidentChildFilterAND.AddCondition(new ConditionExpression("statuscode", ConditionOperator.Equal, 1));
 
-
                     var queryResult = _service.RetrieveMultiple(query);
-
                     if (queryResult != null && queryResult.Entities.Count > 0)
                     {
-                        _participationService.AddParticipation(queryResult.Entities[0].Id);
-                        _InterestService.AddInterest(contactModel, queryResult.Entities[0].Id);
-                        Logger.Info("Returned new Guid() since contact already exist - ContactService.AddContact");
-                        return new Guid();
+                        Guid existingContactId = queryResult.Entities[0].Id;
+                        return existingContactId;
                     }
 
                     var genderValue = GetOptionsSetValueByText(_service, "contact", "gendercode", contactModel.Gender);
@@ -227,11 +216,10 @@ namespace National4HSatrusLive.Services
                         }
 
                     }
-
                     var sourceValue = GetOptionsSetValueByText(_service, "contact", "n4h_source", "Bizzabo");
+
                     if (sourceValue != -1)
                         contactEntity.Attributes["n4h_source"] = new OptionSetValue(sourceValue);
-
                     if (!string.IsNullOrWhiteSpace(contactModel.FirstName))
                         contactEntity.Attributes["firstname"] = contactModel.FirstName;
                     if (!string.IsNullOrWhiteSpace(contactModel.LastName))

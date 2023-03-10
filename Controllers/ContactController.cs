@@ -21,9 +21,17 @@ namespace National4HSatrusLive.Controllers
         /// </summary>
         private readonly ContactService _contactService;
 
+        ParticipationService _participationService;
+        /// <summary>
+        /// The event service
+        /// </summary>
+        private readonly EventService _eventService;
+
         public ContactController()
         {
             _contactService = new ContactService();
+            _eventService = new EventService();
+            _participationService = new ParticipationService();
         }
 
         #region Retrieve Contact
@@ -158,24 +166,29 @@ namespace National4HSatrusLive.Controllers
         /// <param name="contactModel"></param>
         /// <returns></returns>
         [HttpPost]
-        public Guid AddContact([FromBody] ContactModel contactModel)
+        public string AddContact([FromBody] List<ContactModel> contactModel)
         {
             try
             {
-                if (contactModel != null && !string.IsNullOrWhiteSpace(contactModel.FirstName))
+                foreach(var contact in contactModel)
                 {
-                    var contactId = _contactService.AddContact(contactModel);
-                    InterestService interestService = new InterestService();
-                    contactId = interestService.AddInterest(contactModel, contactId);
-                    return contactId;
+                    if (contactModel != null && !string.IsNullOrWhiteSpace(contact.FirstName))
+                    {
+                        var contactId = _contactService.AddContact(contact);
+                        InterestService interestService = new InterestService();
+                        contactId = interestService.AddInterest(contact, contactId);
+                        _participationService.AddParticipation(contactId);
+                        contactId = _eventService.AddEventDetails(contact, contactId);
+                    }
                 }
-                return new Guid();
+                return ("Contacts added");
             }
             catch (Exception ex)
             {
-                return new Guid();
+                return ex.ToString();
             }
         }
+
         #endregion
 
         #region Update
